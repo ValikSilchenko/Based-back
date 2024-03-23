@@ -21,13 +21,6 @@ class VariableTypeEnum(StrEnum):
 
 class VariableEnum(StrEnum):
     empty_tag = "empty_tag"
-    ind_ind_template_tag = "ind_ind_template"
-    ind_jur_template_tag = "ind_jur_template"
-    jur_ind_template_tag = "jur_ind_template"
-    standart_pack_amount = "standart_pack_amount"
-    medium_pack_amount = "medium_pack_amount"
-    big_pack_amount = "big_pack_amount"
-    huge_pack_amount = "huge_pack_amount"
 
 
 class Variable(BaseModel):

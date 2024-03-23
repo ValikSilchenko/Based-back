@@ -35,7 +35,7 @@ def create_storage_folders():
             os.makedirs(path)
 
 
-async def run_in_executor(func: (...), executor: ThreadPoolExecutor, *args):
+async def run_in_executor(func: ..., executor: ThreadPoolExecutor, *args):
     loop = get_running_loop()
     result = await loop.run_in_executor(executor, func, *args)
     return result

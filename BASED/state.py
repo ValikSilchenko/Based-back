@@ -1,12 +1,11 @@
 import json
-from concurrent.futures import ThreadPoolExecutor
 
 from asyncpg import Pool, create_pool
 
 import BASED.conf as conf
+from BASED.repository.task import TaskRepository
 from BASED.repository.user import UserRepository
 from BASED.repository.variable import VariableRepository
-from BASED.repository.task import TaskRepository
 
 
 class AppState:
@@ -53,7 +52,6 @@ class AppState:
     def task_repo(self) -> TaskRepository:
         assert self._task
         return self._task
-
 
 
 app_state = AppState()
