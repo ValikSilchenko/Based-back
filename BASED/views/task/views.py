@@ -8,6 +8,7 @@ from starlette import status
 from BASED.repository.task import TaskCreate, TaskStatusEnum
 from BASED.state import app_state
 from BASED.views.task.models import (
+    ArchiveTaskBody,
     EditTaskBody,
     TaskBody,
     UpdateTaskStatusBody,
@@ -106,3 +107,15 @@ async def update_task_status(body: UpdateTaskStatusBody):
                     else updated_task.actual_start_date
                 ),
             )
+
+
+@router.put(path="/archive_task")
+async def archive_task(body: ArchiveTaskBody):
+    result = await app_state.task_repo.update_task_archive_status(
+        task_id=body.task_id, archive_status=True
+    )
+    if not result:
+        logger.error("Task not found. task_id=%s", body.task_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
+        )

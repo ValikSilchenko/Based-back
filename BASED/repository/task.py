@@ -137,3 +137,17 @@ class TaskRepository:
             )
 
         return bool(row)
+
+    async def update_task_archive_status(
+        self, task_id: int, archive_status: bool
+    ) -> bool:
+        sql = """
+            update "task"
+            set "is_archived" = $2
+            where "id" = $1
+            returning 1
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, task_id, archive_status)
+
+        return bool(row)
