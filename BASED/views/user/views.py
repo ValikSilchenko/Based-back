@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 from BASED.state import app_state
 
-from .models import GetUsersResponse
+from BASED.views.user.models import GetUsersResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

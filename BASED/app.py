@@ -15,7 +15,7 @@ import BASED.metrics as metrics
 import BASED.middlewares as middlewares
 import BASED.migrations_runner as migrations_runner
 from BASED.state import app_state
-from BASED.views.User.views import router as user_router
+from BASED.views.user.views import router as user_router
 
 log.setup_logging()
 logger = logging.getLogger(__name__)
