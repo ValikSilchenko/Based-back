@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import date
 
 from asyncpg import ForeignKeyViolationError
 from fastapi import APIRouter, HTTPException
@@ -86,7 +86,7 @@ async def update_task_status(body: UpdateTaskStatusBody):
             await app_state.task_repo.update_task_start_finish_dates(
                 task_id=updated_task.id,
                 new_start_date=(
-                    datetime.today()
+                    date.today()
                     if old_task.status == TaskStatusEnum.to_do
                     else updated_task.actual_start_date
                 ),
@@ -103,7 +103,7 @@ async def update_task_status(body: UpdateTaskStatusBody):
                 task_id=updated_task.id,
                 new_start_date=updated_task.actual_start_date,
                 new_finish_date=(
-                    datetime.today()
+                    date.today()
                     if old_task.status != TaskStatusEnum.done
                     else updated_task.actual_start_date
                 ),

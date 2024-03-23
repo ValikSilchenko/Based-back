@@ -131,15 +131,27 @@ class TaskRepository:
         в соответсвуии с переданными значениями.
         Возвращает True в случае успеха, False если задача не найдена.
         """
+        actual_completion_days = None
+        if new_start_date is not None and new_finish_date is not None:
+            actual_completion_days = (
+                new_finish_date - new_start_date
+            ).days + 1
+
         sql = """
             update "task"
-            set "actual_start_date" = $2, "actual_finish_date" = $3
+            set "actual_start_date" = $2,
+                "actual_finish_date" = $3,
+                "actual_completion_days" = $4
             where "id" = $1
             returning 1
         """
         async with self._db.acquire() as c:
             row = await c.fetchrow(
-                sql, task_id, new_start_date, new_finish_date
+                sql,
+                task_id,
+                new_start_date,
+                new_finish_date,
+                actual_completion_days,
             )
 
         return bool(row)
