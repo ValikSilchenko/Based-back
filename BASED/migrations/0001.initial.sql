@@ -12,10 +12,10 @@ create table "task"(
     "deadline" date not null,
     "cross_deadline" date,
     "task_delay_caused_by" int,
-    "time_for_completion" int not null,
+    "days_for_completion" int not null,
     "actual_start_date" date,
     "actual_finish_date" date,
-    "actual_completion_time" int,
+    "actual_completion_days" int,
     "is_archived" bool not null default false,
     "created_timestamp" timestamp not null default (now() at time zone 'utc')
 );
