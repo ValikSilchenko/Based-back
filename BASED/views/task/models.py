@@ -25,3 +25,8 @@ class UpdateTaskStatusBody(BaseModel):
 
 class ArchiveTaskBody(BaseModel):
     task_id: int
+
+
+class EditTaskDeadlineBody(BaseModel):
+    task_id: int
+    new_deadline: date
