@@ -2,6 +2,8 @@ from datetime import date
 
 from pydantic import BaseModel
 
+from BASED.repository.task import TaskStatusEnum
+
 
 class TaskBody(BaseModel):
     title: str | None
@@ -14,3 +16,8 @@ class TaskBody(BaseModel):
 class EditTaskBody(BaseModel):
     task_id: int
     task_data: TaskBody
+
+
+class UpdateTaskStatusBody(BaseModel):
+    task_id: int
+    new_status: TaskStatusEnum
