@@ -75,6 +75,9 @@ class TaskRepository:
         responsible_user_id: int,
         days_for_completion: int,
     ) -> Optional[Task]:
+        """
+        Обновляет основные данные о задаче.
+        """
         sql = """
             update "task"
             set "title" = $2, "description" = $3, "deadline" = $4,
@@ -101,6 +104,9 @@ class TaskRepository:
     async def update_task_status(
         self, task_id: int, new_status: TaskStatusEnum
     ) -> Optional[Task]:
+        """
+        Изменяет статус задачи.
+        """
         sql = """
             update "task" set "status" = $2
             where "id" = $1
@@ -141,6 +147,9 @@ class TaskRepository:
     async def update_task_archive_status(
         self, task_id: int, archive_status: bool
     ) -> bool:
+        """
+        Изменяет статус архивации для задачи.
+        """
         sql = """
             update "task"
             set "is_archived" = $2
