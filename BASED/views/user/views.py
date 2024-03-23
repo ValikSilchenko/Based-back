@@ -3,8 +3,7 @@ import logging
 from fastapi import APIRouter
 
 from BASED.state import app_state
-
-from BASED.views.user.models import GetUsersResponse,CreateUserBody
+from BASED.views.user.models import CreateUserBody, GetUsersResponse
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -13,8 +12,9 @@ router = APIRouter()
 @router.post(
     path="/user",
 )
-async def create_users(body:CreateUserBody):
+async def create_users(body: CreateUserBody):
     await app_state.user_repo.create_user(body.name)
+
 
 @router.get(
     path="/users",

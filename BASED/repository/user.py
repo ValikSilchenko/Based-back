@@ -20,8 +20,9 @@ class UserRepository:
         VALUES ($1)
         """
         async with self._db.acquire() as c:
-            row = await c.fetchrow(sql,name)
+            await c.fetchrow(sql, name)
         return
+
     async def get_users(self) -> list[User]:
         """
         Получает информации о списаниях по ID пользователя

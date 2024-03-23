@@ -6,5 +6,6 @@ from BASED.repository.user import User
 class CreateUserBody(BaseModel):
     name: str
 
+
 class GetUsersResponse(BaseModel):
     users: list[User]
