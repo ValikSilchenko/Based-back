@@ -14,6 +14,7 @@ class TaskStatusEnum(StrEnum):
 
 
 class TaskCreate(BaseModel):
+    status: TaskStatusEnum
     title: str | None
     description: str | None
     deadline: date

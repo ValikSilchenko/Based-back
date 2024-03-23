@@ -13,7 +13,7 @@ class UserRepository:
 
     async def create_user(self, name):
         """
-        Получает информации о списаниях по ID пользователя
+        Создаёт пользователя.
         """
         sql = """
         INSERT INTO "user" (name)
@@ -25,7 +25,7 @@ class UserRepository:
 
     async def get_users(self) -> list[User]:
         """
-        Получает информации о списаниях по ID пользователя
+        Получает всех пользователей.
         """
         sql = """
             SELECT *
