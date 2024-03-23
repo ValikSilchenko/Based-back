@@ -17,6 +17,7 @@ import BASED.migrations_runner as migrations_runner
 from BASED.state import app_state
 from BASED.views.task.views import router as task_router
 from BASED.views.user.views import router as user_router
+from BASED.views.dashboard.views import router as dashboard_router
 
 log.setup_logging()
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ app.middleware("http")(middlewares.request_id_middleware)
 
 app.include_router(user_router)
 app.include_router(task_router)
+app.include_router(dashboard_router)
 
 
 @app.on_event("startup")
