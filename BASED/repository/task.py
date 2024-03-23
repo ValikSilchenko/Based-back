@@ -49,9 +49,7 @@ class TaskRepository:
             values ({model_build.placeholders})
         """
         async with self._db.acquire() as c:
-            row = await c.fetchrow(sql, *model_build.values)
-
-        return Task(**dict(row))
+            await c.execute(sql, *model_build.values)
 
     async def get_by_id(self, id_: int) -> Optional[Task]:
         sql = """
@@ -189,3 +187,16 @@ class TaskRepository:
             row = await c.fetchrow(sql, task_id, new_deadline)
 
         return bool(row)
+
+    async def get_tasks_ordered_by_status(self):
+        """
+        Получает задачи отсортированные по дедлайнам и статусам.
+        """
+        sql = """
+            select * from "task"
+            order by "status", "deadline"
+        """
+        async with self._db.acquire() as c:
+            rows = await c.fetch(sql)
+
+        return [Task(**dict(row)) for row in rows]
