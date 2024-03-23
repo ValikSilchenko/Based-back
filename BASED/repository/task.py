@@ -98,7 +98,9 @@ class TaskRepository:
 
         return Task(**dict(row))
 
-    async def update_task_status(self, task_id: int, new_status: TaskStatusEnum) -> Optional[Task]:
+    async def update_task_status(
+        self, task_id: int, new_status: TaskStatusEnum
+    ) -> Optional[Task]:
         sql = """
             update "task" set "status" = $2
             where "id" = $1
@@ -112,4 +114,26 @@ class TaskRepository:
 
         return Task(**dict(row))
 
+    async def update_task_start_finish_dates(
+        self,
+        task_id: int,
+        new_start_date: date | None,
+        new_finish_date: date | None,
+    ) -> bool:
+        """
+        Обновляет фактическую дату начала и фактическую дату окончания
+        в соответсвуии с переданными значениями.
+        Возвращает True в случае успеха, False если задача не найдена.
+        """
+        sql = """
+            update "task"
+            set "actual_start_date" = $2, "actual_finish_date" = $3
+            where "id" = $1
+            returning 1
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(
+                sql, task_id, new_start_date, new_finish_date
+            )
 
+        return bool(row)
