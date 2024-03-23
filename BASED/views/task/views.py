@@ -10,6 +10,7 @@ from BASED.state import app_state
 from BASED.views.task.models import (
     ArchiveTaskBody,
     EditTaskBody,
+    EditTaskDeadlineBody,
     TaskBody,
     UpdateTaskStatusBody,
 )
@@ -113,6 +114,18 @@ async def update_task_status(body: UpdateTaskStatusBody):
 async def archive_task(body: ArchiveTaskBody):
     result = await app_state.task_repo.update_task_archive_status(
         task_id=body.task_id, archive_status=True
+    )
+    if not result:
+        logger.error("Task not found. task_id=%s", body.task_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
+        )
+
+
+@router.put(path="/edit_deadline")
+async def edit_task_deadline(body: EditTaskDeadlineBody):
+    result = await app_state.task_repo.update_task_deadline(
+        task_id=body.task_id, new_deadline=body.new_deadline
     )
     if not result:
         logger.error("Task not found. task_id=%s", body.task_id)

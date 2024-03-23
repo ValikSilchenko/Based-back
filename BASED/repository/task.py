@@ -160,3 +160,20 @@ class TaskRepository:
             row = await c.fetchrow(sql, task_id, archive_status)
 
         return bool(row)
+
+    async def update_task_deadline(
+        self, task_id: int, new_deadline: date
+    ) -> bool:
+        """
+        Изменяет текущий дедлайн по задаче.
+        """
+        sql = """
+            update "task"
+            set "deadline" = $2
+            where "id" = $1
+            returning 1
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, task_id, new_deadline)
+
+        return bool(row)
