@@ -42,7 +42,7 @@ class TaskRepository:
     def __init__(self, db: Pool):
         self._db = db
 
-    async def create(self, task_create_model: TaskCreate):
+    async def create(self, task_create_model: TaskCreate) -> Task:
         model_build = build_model_sql(task_create_model)
         sql = f"""
             insert into "task" ({model_build.field_names})
@@ -50,9 +50,6 @@ class TaskRepository:
         """
         async with self._db.acquire() as c:
             row = await c.fetchrow(sql, *model_build.values)
-
-        if not row:
-            return
 
         return Task(**dict(row))
 
@@ -63,6 +60,38 @@ class TaskRepository:
         """
         async with self._db.acquire() as c:
             row = await c.fetchrow(sql, id_)
+
+        if not row:
+            return
+
+        return Task(**dict(row))
+
+    async def update_task_data(
+        self,
+        task_id: int,
+        title: str | None,
+        description: str | None,
+        deadline: date,
+        responsible_user_id: int,
+        days_for_completion: int,
+    ) -> Optional[Task]:
+        sql = """
+            update "task"
+            set "title" = $2, "description" = $3, "deadline" = $4,
+            "responsible_user_id" = $5, "days_for_completion" = $6
+            where "id" = $1
+            returning *
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(
+                sql,
+                task_id,
+                title,
+                description,
+                deadline,
+                responsible_user_id,
+                days_for_completion,
+            )
 
         if not row:
             return
