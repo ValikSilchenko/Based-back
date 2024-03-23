@@ -3,7 +3,6 @@ import logging
 from fastapi import APIRouter
 
 from BASED.state import app_state
-
 from BASED.views.user.models import GetUsersResponse
 
 logger = logging.getLogger(__name__)
