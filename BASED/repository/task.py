@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from enum import StrEnum
+from typing import Optional
 
 from asyncpg import Pool
 from pydantic import BaseModel
@@ -49,6 +50,19 @@ class TaskRepository:
         """
         async with self._db.acquire() as c:
             row = await c.fetchrow(sql, *model_build.values)
+
+        if not row:
+            return
+
+        return Task(**dict(row))
+
+    async def get_by_id(self, id_: int) -> Optional[Task]:
+        sql = """
+            select * from "task"
+            where "id" = $1
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, id_)
 
         if not row:
             return
