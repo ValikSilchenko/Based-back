@@ -28,6 +28,7 @@ class AppState:
             dsn=conf.DATABASE_DSN, init=self.init_connection
         )
         self._user = UserRepository(db=self._db)
+        self._task = TaskRepository(db=self._db)
 
     async def shutdown(self) -> None:
         if self._db:
