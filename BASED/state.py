@@ -5,12 +5,16 @@ from asyncpg import Pool, create_pool
 
 import BASED.conf as conf
 from BASED.repository.user import UserRepository
+from BASED.repository.variable import VariableRepository
+from BASED.repository.task import TaskRepository
 
 
 class AppState:
     def __init__(self) -> None:
         self._db = None
         self._user = None
+        self._variable = None
+        self._task = None
 
     async def init_connection(self, conn):
         await conn.set_type_codec(
@@ -39,6 +43,17 @@ class AppState:
     def user_repo(self) -> UserRepository:
         assert self._user
         return self._user
+
+    @property
+    def variable_repo(self) -> VariableRepository:
+        assert self._variable
+        return self._variable
+
+    @property
+    def task_repo(self) -> TaskRepository:
+        assert self._task
+        return self._task
+
 
 
 app_state = AppState()
