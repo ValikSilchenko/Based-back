@@ -16,6 +16,7 @@ import BASED.middlewares as middlewares
 import BASED.migrations_runner as migrations_runner
 from BASED.state import app_state
 from BASED.views.user.views import router as user_router
+from BASED.views.task.views import router as task_router
 
 log.setup_logging()
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ app.middleware("http")(middlewares.request_status_middleware)
 app.middleware("http")(middlewares.request_id_middleware)
 
 app.include_router(user_router)
+app.include_router(task_router)
 
 
 @app.on_event("startup")
