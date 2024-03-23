@@ -26,7 +26,7 @@ def get_default(obj, keys: list, default):
 
 
 def create_storage_folders():
-    folders = ["photos", "contract-templates", "temp"]
+    folders = []
     for folder in folders:
         path = os.path.join(conf.STORAGE_DIR, folder)
         isExist = os.path.exists(path)
