@@ -97,3 +97,19 @@ class TaskRepository:
             return
 
         return Task(**dict(row))
+
+    async def update_task_status(self, task_id: int, new_status: TaskStatusEnum) -> Optional[Task]:
+        sql = """
+            update "task" set "status" = $2
+            where "id" = $1
+            returning *
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, task_id, new_status)
+
+        if not row:
+            return
+
+        return Task(**dict(row))
+
+
