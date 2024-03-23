@@ -4,11 +4,13 @@ from concurrent.futures import ThreadPoolExecutor
 from asyncpg import Pool, create_pool
 
 import BASED.conf as conf
+from BASED.repository.user import UserRepository
 
 
 class AppState:
     def __init__(self) -> None:
         self._db = None
+        self._user = None
 
     async def init_connection(self, conn):
         await conn.set_type_codec(
@@ -18,10 +20,11 @@ class AppState:
             schema="pg_catalog",
         )
 
-    async def startup(self, from_tasks: bool = False) -> None:
+    async def startup(self) -> None:
         self._db = await create_pool(
             dsn=conf.DATABASE_DSN, init=self.init_connection
         )
+        self._user = UserRepository(db=self._db)
 
     async def shutdown(self) -> None:
         if self._db:
@@ -31,6 +34,11 @@ class AppState:
     def db(self) -> Pool:
         assert self._db
         return self._db
+
+    @property
+    def user_repo(self) -> UserRepository:
+        assert self._user
+        return self._user
 
 
 app_state = AppState()
