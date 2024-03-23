@@ -21,3 +21,7 @@ class EditTaskBody(BaseModel):
 class UpdateTaskStatusBody(BaseModel):
     task_id: int
     new_status: TaskStatusEnum
+
+
+class ArchiveTaskBody(BaseModel):
+    task_id: int
