@@ -31,3 +31,4 @@ yoyo-migrations==8.2.0
 zipp==3.18.1
 sentry-sdk==1.15.0
 prometheus_client==0.20.0
+aiosmtplib==3.0.1
