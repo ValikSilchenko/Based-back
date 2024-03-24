@@ -78,6 +78,7 @@ class TaskRepository:
         sql = f"""
             insert into "task" ({model_build.field_names})
             values ({model_build.placeholders})
+            returning *
         """
         async with self._db.acquire() as c:
             row = await c.fetchrow(sql, *model_build.values)
