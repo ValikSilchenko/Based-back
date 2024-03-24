@@ -1,9 +1,12 @@
+import logging
 from datetime import date, timedelta
 
 from BASED.conf import TIME_RESERVE_COEF
 from BASED.repository.task import Task, TaskStatusEnum, TaskStatusOrder
 from BASED.state import app_state
 from BASED.views.dashboard.models import WarningModel, WarningTypeEnum
+
+logger = logging.getLogger(__name__)
 
 
 def get_warnings_list(task: Task) -> list[WarningModel]:
@@ -20,7 +23,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
             elif current_date >= task.deadline - timedelta(
-                days=int(task.days_for_completion * TIME_RESERVE_COEF) + 1
+                days=task.days_for_completion * TIME_RESERVE_COEF
             ):
                 warnings.append(
                     WarningModel(
@@ -42,7 +45,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
             elif current_date >= task.deadline - timedelta(
-                days=int(days_to_deadline * TIME_RESERVE_COEF) + 1
+                days=days_to_deadline * TIME_RESERVE_COEF
             ):
                 warnings.append(
                     WarningModel(
@@ -50,7 +53,11 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
 
-    if current_date > task.deadline:
+    if task.status == TaskStatusEnum.done and task.actual_finish_date > task.deadline:
+        warnings.append(
+            WarningModel(type=WarningTypeEnum.late_deadline, task_id=task.id)
+        )
+    elif task.status != TaskStatusEnum.done and current_date > task.deadline:
         warnings.append(
             WarningModel(type=WarningTypeEnum.late_deadline, task_id=task.id)
         )
@@ -66,11 +73,14 @@ async def get_warnings_with_cross(task: Task) -> list[WarningModel]:
     if not dependent_of_tasks:
         return warnings
 
-    task_id = max(dependent_of_tasks, key=lambda x: x.deadline)
-    comparing_task = await app_state.task_repo.get_by_id(id_=task_id)
+    tasks = []
+    for dependency in dependent_of_tasks:
+        tasks.append(await app_state.task_repo.get_by_id(id_=dependency.task_id))
+
+    comparing_task = max(tasks, key=lambda x: x.deadline)
 
     soft_start_date = task.deadline - timedelta(
-        days=int(task.days_for_completion * TIME_RESERVE_COEF) + 1
+        days=task.days_for_completion * TIME_RESERVE_COEF
     )
     hard_start_date = task.deadline - timedelta(days=task.days_for_completion)
     current_date = date.today()
@@ -151,11 +161,11 @@ def get_start_finish_date(task: Task) -> tuple[date, date]:
                 finish_date = current_date
             else:
                 finish_date = start_date + timedelta(
-                    days=task.days_for_completion
+                    days=task.days_for_completion - 1
                 )
         case TaskStatusEnum.to_do:
-            days_with_reserve = (
-                int(task.days_for_completion * TIME_RESERVE_COEF) + 1
+            days_with_reserve = int(
+                task.days_for_completion * TIME_RESERVE_COEF
             )
             start_date_with_reserve = task.deadline - timedelta(
                 days=days_with_reserve
@@ -163,12 +173,12 @@ def get_start_finish_date(task: Task) -> tuple[date, date]:
             if current_date < start_date_with_reserve:
                 start_date = start_date_with_reserve
                 finish_date = start_date_with_reserve + timedelta(
-                    days=task.days_for_completion
+                    days=task.days_for_completion - 1
                 )
             else:
                 start_date = current_date
                 finish_date = current_date + timedelta(
-                    days=task.days_for_completion
+                    days=task.days_for_completion - 1
                 )
 
     return start_date, finish_date
