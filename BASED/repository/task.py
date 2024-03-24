@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from enum import StrEnum
+from enum import StrEnum, IntEnum
 from typing import Optional
 
 from asyncpg import Pool
@@ -12,6 +12,12 @@ class TaskStatusEnum(StrEnum):
     to_do = "to_do"
     in_progress = "in_progress"
     done = "done"
+
+
+class TaskStatusOrder(IntEnum):
+    to_do = 1
+    in_progress = 2
+    done = 3
 
 
 class TaskCreate(BaseModel):
@@ -194,6 +200,7 @@ class TaskRepository:
         """
         sql = """
             select * from "task"
+            where not "is_archived"
             order by "status", "deadline"
         """
         async with self._db.acquire() as c:
