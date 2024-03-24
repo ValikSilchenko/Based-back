@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from enum import IntEnum, StrEnum
+from enum import StrEnum
 from typing import Optional
 
 from asyncpg import Pool
@@ -66,7 +66,9 @@ class TaskRepository:
             values ({model_build.placeholders})
         """
         async with self._db.acquire() as c:
-            await c.execute(sql, *model_build.values)
+            row = await c.fetchrow(sql, *model_build.values)
+
+        return Task(**dict(row))
 
     async def get_by_id(self, id_: int) -> Optional[Task]:
         sql = """
@@ -273,3 +275,18 @@ class TaskRepository:
             rows = await c.fetch(sql)
 
         return [Task(**dict(row)) for row in rows]
+
+    async def del_tasks_depends(self, id_: int, depends_id: int) -> bool:
+        """
+        Получает всех пользователей.
+        """
+        sql = """
+            DELETE FROM "task_depends"
+            WHERE "task_id" = $1 AND "depends_task_id" = $2
+            RETURNING TRUE
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, id_, depends_id)
+        if not row:
+            return False
+        return True
