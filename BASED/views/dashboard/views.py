@@ -1,14 +1,13 @@
 import logging
-from datetime import date
 
 from fastapi import APIRouter
 
 from BASED.repository.task import TaskStatusEnum
 from BASED.state import app_state
 from BASED.views.dashboard.helpers import (
+    get_start_finish_date,
     get_status_order_number,
     get_warnings_list,
-    get_start_finish_date,
 )
 from BASED.views.dashboard.models import (
     DashboardTask,

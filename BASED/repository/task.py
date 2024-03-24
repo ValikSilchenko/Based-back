@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from enum import StrEnum, IntEnum
+from enum import IntEnum, StrEnum
 from typing import Optional
 
 from asyncpg import Pool
