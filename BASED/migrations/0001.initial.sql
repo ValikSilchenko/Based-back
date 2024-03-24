@@ -22,5 +22,6 @@ create table "task"(
 create table "task_depends"(
     "task_id" int,
     "depends_task_id" int,
-    "created_timestamp" timestamp not null default (now() at time zone 'utc')
+    "created_timestamp" timestamp not null default (now() at time zone 'utc'),
+    primary key (task_id, depends_task_id)
 );
