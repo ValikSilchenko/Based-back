@@ -3,7 +3,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from BASED.repository.task import TaskStatusEnum
+from BASED.repository.task import DependencyTypeEnum, TaskStatusEnum
 from BASED.repository.user import User
 
 
@@ -54,3 +54,11 @@ class TimelineTask(BaseModel):
 
 class GetTimelineTasksResponse(BaseModel):
     tasks: list[TimelineTask]
+
+
+class TimelineTaskDependency(TimelineTask):
+    dependency_type: DependencyTypeEnum
+
+
+class GetTimelineDependenciesResponse(BaseModel):
+    tasks: list[TimelineTaskDependency]
