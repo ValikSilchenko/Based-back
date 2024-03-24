@@ -5,11 +5,16 @@ from asyncpg import ForeignKeyViolationError
 from fastapi import APIRouter, HTTPException
 from starlette import status
 
-from BASED.repository.task import TaskCreate, TaskStatusEnum
+from BASED.repository.task import (
+    DependencyTypeEnum,
+    TaskCreate,
+    TaskStatusEnum,
+)
 from BASED.state import app_state
 from BASED.views.task.helpers import check_dependency_and_add
 from BASED.views.task.models import (
     ArchiveTaskBody,
+    CreateTaskResponse,
     EditTaskBody,
     EditTaskDeadlineBody,
     GetAllTasksResponse,
@@ -24,14 +29,32 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post(path="/create_task")
+@router.post(path="/create_task", response_model=CreateTaskResponse)
 async def create_task(body: TaskBody):
     try:
-        await app_state.task_repo.create(
+        task = await app_state.task_repo.create(
             task_create_model=TaskCreate(
                 status=TaskStatusEnum.to_do, **dict(body)
             )
         )
+        logger.info("Task created successfully. task_id=%s", task.id)
+
+        dependencies = [
+            TaskDependency(
+                task_id=(
+                    dependency.task_id
+                    if dependency.type == DependencyTypeEnum.depends_of
+                    else task.id
+                ),
+                depends_of_task_id=(
+                    task.id
+                    if dependency.type == DependencyTypeEnum.depends_of
+                    else dependency.task_id
+                ),
+            )
+            for dependency in body.dependencies
+        ]
+        depend_errors = await check_dependency_and_add(dependencies)
     except ForeignKeyViolationError:
         logger.error(
             "Responsible user not found. responsible_user_id=%s",
@@ -41,6 +64,10 @@ async def create_task(body: TaskBody):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Responsible user not found.",
         )
+
+    return CreateTaskResponse(
+        created_task_id=task.id, dependency_errors=depend_errors
+    )
 
 
 @router.put(path="/edit_task")
