@@ -65,3 +65,31 @@ def get_status_order_number(status: TaskStatusEnum) -> int:
             return TaskStatusOrder.in_progress.value
         case TaskStatusEnum.done:
             return TaskStatusOrder.done.value
+
+
+def get_start_finish_date(task: Task) -> tuple[date, date]:
+    """
+    Получает предполагаемую дату начала и окончания работы на задачей.
+    """
+    current_date = date.today()
+    match task.status:
+        case TaskStatusEnum.done:
+            start_date = task.actual_start_date
+            finish_date = task.actual_finish_date
+        case TaskStatusEnum.in_progress:
+            start_date = task.actual_start_date
+            if current_date > task.deadline:
+                finish_date = current_date
+            else:
+                finish_date = task.deadline
+        case TaskStatusEnum.to_do:
+            days_with_reserve = task.days_for_completion * TIME_RESERVE_COEF
+            start_date_with_reserve = task.deadline - timedelta(days=days_with_reserve)
+            if current_date < start_date_with_reserve:
+                start_date = start_date_with_reserve
+                finish_date = start_date_with_reserve + timedelta(days=task.days_for_completion)
+            else:
+                start_date = current_date
+                finish_date = current_date + timedelta(days=task.days_for_completion)
+
+    return start_date, finish_date

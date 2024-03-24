@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 
 from fastapi import APIRouter
 
@@ -6,12 +7,12 @@ from BASED.repository.task import TaskStatusEnum
 from BASED.state import app_state
 from BASED.views.dashboard.helpers import (
     get_status_order_number,
-    get_warnings_list,
+    get_warnings_list, get_start_finish_date,
 )
 from BASED.views.dashboard.models import (
     DashboardTask,
     DashboardTasksByStatus,
-    GetDashboardTasksResponse, GetTimelineTasksResponse,
+    GetDashboardTasksResponse, GetTimelineTasksResponse, TimelineTask,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,3 +55,31 @@ async def get_dashboard_tasks():
             for status, tasks_by_status in statuses.items()
         ],
     )
+
+
+@router.get("/timeline_tasks", response_model=GetTimelineTasksResponse)
+async def get_timeline_tasks():
+    tasks = await app_state.task_repo.get_tasks_ordered_by_deadline()
+    timeline_tasks = []
+    for task in tasks:
+        responsible = await app_state.user_repo.get_by_id(
+            id_=task.responsible_user_id
+        )
+        warnings_list = get_warnings_list(task)
+        start_date, finish_date = get_start_finish_date(task)
+
+        timeline_tasks.append(
+            TimelineTask(
+                id=task.id,
+                status=task.status,
+                title=task.title,
+                deadline=task.deadline,
+                start_date=start_date,
+                finish_date=finish_date,
+                responsible=responsible,
+                warnings=warnings_list,
+            )
+        )
+
+    return GetTimelineTasksResponse(tasks=timeline_tasks)
+
