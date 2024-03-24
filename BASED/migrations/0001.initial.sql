@@ -8,7 +8,7 @@ create table "task"(
     "title" varchar(128),
     "description" varchar,
     "status" varchar(16) not null,
-    "responsible_user_id" int not null references "user"(id),
+    "responsible_user_id" int references "user"(id),
     "deadline" date not null,
     "cross_deadline" date,
     "task_delay_caused_by" int,
