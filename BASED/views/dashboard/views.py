@@ -8,6 +8,7 @@ from BASED.views.dashboard.helpers import (
     get_start_finish_date,
     get_status_order_number,
     get_warnings_list,
+    get_warnings_with_cross,
 )
 from BASED.views.dashboard.models import (
     DashboardTask,
@@ -67,7 +68,7 @@ async def get_timeline_tasks():
         responsible = await app_state.user_repo.get_by_id(
             id_=task.responsible_user_id
         )
-        warnings_list = get_warnings_list(task)
+        warnings_list = await get_warnings_with_cross(task)
         start_date, finish_date = get_start_finish_date(task)
 
         timeline_tasks.append(

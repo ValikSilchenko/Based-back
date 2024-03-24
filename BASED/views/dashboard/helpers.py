@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from BASED.conf import TIME_RESERVE_COEF
 from BASED.repository.task import Task, TaskStatusEnum, TaskStatusOrder
+from BASED.state import app_state
 from BASED.views.dashboard.models import WarningModel, WarningTypeEnum
 
 
@@ -57,6 +58,74 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
     return warnings
 
 
+async def get_warnings_with_cross(task: Task) -> list[WarningModel]:
+    warnings = get_warnings_list(task)
+    dependent_of_tasks = await app_state.task_repo.get_tasks_dependent_of(
+        dependent_task_id=task.id
+    )
+    if not dependent_of_tasks:
+        return warnings
+
+    task_id = max(dependent_of_tasks, key=lambda x: x.deadline)
+    comparing_task = await app_state.task_repo.get_by_id(id_=task_id)
+
+    soft_start_date = task.deadline - timedelta(
+        days=int(task.days_for_completion * TIME_RESERVE_COEF) + 1
+    )
+    hard_start_date = task.deadline - timedelta(days=task.days_for_completion)
+    current_date = date.today()
+
+    cross_warning = None
+    if (
+        comparing_task.actual_finish_date
+        and comparing_task.actual_finish_date >= hard_start_date
+    ):
+        cross_warning = WarningModel(
+            type=WarningTypeEnum.cross_hard,
+            task_id=comparing_task.id,
+        )
+    elif (
+        comparing_task.actual_finish_date
+        and comparing_task.actual_finish_date >= soft_start_date
+    ):
+        cross_warning = WarningModel(
+            type=WarningTypeEnum.cross_soft,
+            task_id=comparing_task.id,
+        )
+    if (
+        comparing_task.actual_finish_date is None
+        and current_date > hard_start_date
+    ):
+        cross_warning = WarningModel(
+            type=WarningTypeEnum.cross_hard,
+            task_id=comparing_task.id,
+        )
+    elif (
+        comparing_task.actual_finish_date is None
+        and current_date > soft_start_date
+    ):
+        cross_warning = WarningModel(
+            type=WarningTypeEnum.cross_soft,
+            task_id=comparing_task.id,
+        )
+
+    if comparing_task.deadline > hard_start_date:
+        cross_warning = WarningModel(
+            type=WarningTypeEnum.cross_hard,
+            task_id=comparing_task.id,
+        )
+    elif comparing_task.deadline > soft_start_date:
+        cross_warning = WarningModel(
+            type=WarningTypeEnum.cross_soft,
+            task_id=comparing_task.id,
+        )
+
+    if cross_warning:
+        warnings.append(cross_warning)
+
+    return warnings
+
+
 def get_status_order_number(status: TaskStatusEnum) -> int:
     match status:
         case TaskStatusEnum.to_do:
@@ -81,9 +150,13 @@ def get_start_finish_date(task: Task) -> tuple[date, date]:
             if current_date > task.deadline:
                 finish_date = current_date
             else:
-                finish_date = start_date + timedelta(days=task.days_for_completion)
+                finish_date = start_date + timedelta(
+                    days=task.days_for_completion
+                )
         case TaskStatusEnum.to_do:
-            days_with_reserve = int(task.days_for_completion * TIME_RESERVE_COEF) + 1
+            days_with_reserve = (
+                int(task.days_for_completion * TIME_RESERVE_COEF) + 1
+            )
             start_date_with_reserve = task.deadline - timedelta(
                 days=days_with_reserve
             )
