@@ -11,7 +11,7 @@ from BASED.views.dashboard.helpers import (
 from BASED.views.dashboard.models import (
     DashboardTask,
     DashboardTasksByStatus,
-    GetDashboardTasksResponse,
+    GetDashboardTasksResponse, GetTimelineTasksResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ router = APIRouter(tags=["dashboard"])
 
 @router.get(path="/dashboard_tasks", response_model=GetDashboardTasksResponse)
 async def get_dashboard_tasks():
-    tasks = await app_state.task_repo.get_tasks_ordered_by_status()
+    tasks = await app_state.task_repo.get_tasks_ordered_by_deadline()
 
     statuses = {}
     for task in tasks:

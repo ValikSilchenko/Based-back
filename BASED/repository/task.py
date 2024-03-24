@@ -262,14 +262,14 @@ class TaskRepository:
 
         return [ShortTask(**dict(i)) for i in data]
 
-    async def get_tasks_ordered_by_status(self) -> list[Task]:
+    async def get_tasks_ordered_by_deadline(self) -> list[Task]:
         """
         Получает задачи отсортированные по дедлайнам и статусам.
         """
         sql = """
             select * from "task"
             where not "is_archived"
-            order by "status", "deadline"
+            order by "deadline"
         """
         async with self._db.acquire() as c:
             rows = await c.fetch(sql)
