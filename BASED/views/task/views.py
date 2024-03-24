@@ -62,7 +62,12 @@ async def create_task(body: TaskBody):
 async def edit_task(body: EditTaskBody):
     try:
         task = await app_state.task_repo.update_task_data(
-            task_id=body.task_id, **dict(body.task_data)
+            task_id=body.task_id,
+            title=body.task_data.title,
+            description=body.task_data.description,
+            deadline=body.task_data.deadline,
+            responsible_user_id=body.task_data.responsible_user_id,
+            days_for_completion=body.task_data.days_for_completion,
         )
     except ForeignKeyViolationError:
         logger.error(
@@ -81,7 +86,7 @@ async def edit_task(body: EditTaskBody):
         )
 
     dependencies = parse_dependencies_types_to_task_depends(
-        dependencies=body.dependencies, main_task_id=task.id
+        dependencies=body.task_data.dependencies, main_task_id=task.id
     )
     depend_errors = await check_dependency_and_add(dependencies)
 
