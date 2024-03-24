@@ -50,3 +50,18 @@ class UserRepository:
             return
 
         return User(**dict(row))
+
+    async def del_user(self, user_id: int) -> bool:
+        """
+        Удаление пользователя.
+        """
+        sql = """
+            DELETE FROM "user"
+            WHERE "id" = $1
+            RETURNING TRUE
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, user_id)
+        if not row:
+            return False
+        return True

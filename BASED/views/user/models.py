@@ -9,3 +9,6 @@ class CreateUserBody(BaseModel):
 
 class GetUsersResponse(BaseModel):
     users: list[User]
+
+class DeleteUserBody(BaseModel):
+    user_id: int

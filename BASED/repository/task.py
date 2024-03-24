@@ -329,3 +329,20 @@ class TaskRepository:
             rows = await c.fetch(sql, task_id)
 
         return [TaskWithDependency(**dict(row)) for row in rows]
+
+    async def del_responsible_user_id(
+            self, user_id: int
+    ) -> bool:
+        """
+        Удаляет ответственного
+        """
+        sql = """
+               update "task"
+               set "responsible_user_id" = NULL
+               where "responsible_user_id" = $1
+               returning 1
+           """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, user_id)
+
+        return bool(row)
