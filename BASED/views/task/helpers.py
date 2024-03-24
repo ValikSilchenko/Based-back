@@ -1,7 +1,8 @@
 import logging
 
+from BASED.repository.task import DependencyTypeEnum
 from BASED.state import app_state
-from BASED.views.task.models import TaskDependency
+from BASED.views.task.models import CreationTaskDependencies, TaskDependency
 
 logger = logging.getLogger(__name__)
 
@@ -64,3 +65,25 @@ async def check_dependency_and_add(
                 id_=depend.task_id, depends_id=depend.depends_of_task_id
             )
     return depend_errors
+
+
+def parse_dependencies_types_to_task_depends(
+    dependencies: list[CreationTaskDependencies], main_task_id: int
+) -> list[TaskDependency]:
+    dependencies = [
+        TaskDependency(
+            task_id=(
+                dependency.task_id
+                if dependency.type == DependencyTypeEnum.depends_of
+                else main_task_id
+            ),
+            depends_of_task_id=(
+                main_task_id
+                if dependency.type == DependencyTypeEnum.depends_of
+                else dependency.task_id
+            ),
+        )
+        for dependency in dependencies
+    ]
+
+    return dependencies

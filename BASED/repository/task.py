@@ -331,9 +331,7 @@ class TaskRepository:
 
         return [TaskWithDependency(**dict(row)) for row in rows]
 
-    async def del_responsible_user_id(
-            self, user_id: int
-    ) -> bool:
+    async def del_responsible_user_id(self, user_id: int) -> bool:
         """
         Удаляет ответственного
         """
