@@ -12,7 +12,7 @@ router = APIRouter()
 @router.post(
     path="/user",
 )
-async def create_users(body: CreateUserBody):
+async def create_user(body: CreateUserBody):
     await app_state.user_repo.create_user(body.name)
 
 

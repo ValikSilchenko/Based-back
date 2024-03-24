@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 from typing import Optional
 
 from asyncpg import Pool
@@ -249,7 +249,7 @@ class TaskRepository:
 
         return bool(row)
 
-    async def get_all_tasks(self) -> list[ShortTask]:
+    async def get_all_short_tasks(self) -> list[ShortTask]:
         """
         Получает всех пользователей.
         """
@@ -262,14 +262,14 @@ class TaskRepository:
 
         return [ShortTask(**dict(i)) for i in data]
 
-    async def get_tasks_ordered_by_status(self) -> list[Task]:
+    async def get_tasks_ordered_by_deadline(self) -> list[Task]:
         """
         Получает задачи отсортированные по дедлайнам и статусам.
         """
         sql = """
             select * from "task"
             where not "is_archived"
-            order by "status", "deadline"
+            order by "deadline"
         """
         async with self._db.acquire() as c:
             rows = await c.fetch(sql)

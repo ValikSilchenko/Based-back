@@ -35,7 +35,7 @@ app.middleware("http")(middlewares.access_log_middleware)
 app.middleware("http")(middlewares.request_time_middleware)
 app.middleware("http")(middlewares.request_status_middleware)
 app.middleware("http")(middlewares.request_id_middleware)
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
 
 app.include_router(user_router)
 app.include_router(task_router)

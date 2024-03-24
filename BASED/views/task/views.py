@@ -164,22 +164,25 @@ async def add_task_dependency(body: TaskDependencyBody):
     )
     return None
 
-@router.delete(
-    path="/del_task_dependency"
-)
-async def delete_task_dependency(body:TaskDependencyBody):
+
+@router.delete(path="/del_task_dependency")
+async def delete_task_dependency(body: TaskDependencyBody):
     is_deleted = await app_state.task_repo.del_tasks_depends(
-        body.task_id,
-        body.depends_of_task_id
+        body.task_id, body.depends_of_task_id
     )
     logger.info(is_deleted)
     if not is_deleted:
-        logger.error("Dependency not found. task_id=%s depends_of_task_id=%s",
-                     body.task_id, body.depends_of_task_id)
+        logger.error(
+            "Dependency not found. task_id=%s depends_of_task_id=%s",
+            body.task_id,
+            body.depends_of_task_id,
+        )
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Dependency not found."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Dependency not found.",
         )
     return
+
 
 @router.put(path="/archive_task")
 async def archive_task(body: ArchiveTaskBody):
@@ -204,9 +207,10 @@ async def edit_task_deadline(body: EditTaskDeadlineBody):
             status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
         )
 
+
 @router.get(
     path="/all_tasks",
 )
 async def get_all_tasks():
-    tasks = await app_state.task_repo.get_all_tasks()
+    tasks = await app_state.task_repo.get_all_short_tasks()
     return GetAllTasksResponse(tasks=tasks)
