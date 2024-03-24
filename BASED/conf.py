@@ -20,3 +20,5 @@ SMTP_HOST = os.environ["SMTP_HOST"]
 SMTP_PORT = os.environ["SMTP_PORT"]
 SMTP_USERNAME = os.environ["SMTP_USERNAME"]
 SMTP_PASSWORD = os.environ["SMTP_PASSWORD"]
+
+USER_EMAIL = os.environ["USER_EMAIL"]
