@@ -13,3 +13,5 @@ PROMETHEUS_PORT = int(os.environ.get("TL_PROMETHEUS_PORT", 9100))
 
 SENTRY_DSN = os.environ["TL_SENTRY_DSN"]
 ENVIRONMENT = os.environ.get("TL_ENVIRONMENT", "unknown")
+
+TIME_RESERVE_COEF = float(os.environ["TL_TIME_RESERVE_COEF"])

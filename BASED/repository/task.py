@@ -14,6 +14,12 @@ class TaskStatusEnum(StrEnum):
     done = "done"
 
 
+class TaskStatusOrder(IntEnum):
+    to_do = 1
+    in_progress = 2
+    done = 3
+
+
 class TaskCreate(BaseModel):
     status: TaskStatusEnum
     title: str | None
@@ -167,9 +173,9 @@ class TaskRepository:
 
         return bool(row)
 
-    async def get_task_depends(self, id_: int) -> TaskDepends | None:
+    async def get_task_depends(self, id_: int) -> Optional[TaskDepends]:
         """
-        Показывает зависимость задачи
+        Показывает зависимости задачи
         """
         sql = """
         SELECT * from "task_depends"
@@ -182,7 +188,22 @@ class TaskRepository:
 
         return TaskDepends(**dict(row))
 
-    async def add_task_depends(self, id_: int, depends_id: int):
+    async def get_tasks_dependent_of(
+        self, dependent_task_id: int
+    ) -> list[TaskDepends]:
+        """
+        Получение всех задач, от которых зависит данная.
+        """
+        sql = """
+                SELECT * from "task_depends"
+                WHERE "depends_task_id" = $1
+                """
+        async with self._db.acquire() as c:
+            rows = await c.fetch(sql, dependent_task_id)
+
+        return [TaskDepends(**dict(row)) for row in rows]
+
+    async def add_task_depends(self, id_: int, depends_id: int) -> None:
         """
         Добавляет зависимость задач
         """
@@ -192,8 +213,7 @@ class TaskRepository:
         ON CONFLICT (task_id, depends_task_id) DO NOTHING
         """
         async with self._db.acquire() as c:
-            await c.fetchrow(sql, id_, depends_id)
-        return
+            await c.execute(sql, id_, depends_id)
 
     async def update_task_archive_status(
         self, task_id: int, archive_status: bool
@@ -241,6 +261,20 @@ class TaskRepository:
             data = await c.fetch(sql)
 
         return [ShortTask(**dict(i)) for i in data]
+
+    async def get_tasks_ordered_by_status(self) -> list[Task]:
+        """
+        Получает задачи отсортированные по дедлайнам и статусам.
+        """
+        sql = """
+            select * from "task"
+            where not "is_archived"
+            order by "status", "deadline"
+        """
+        async with self._db.acquire() as c:
+            rows = await c.fetch(sql)
+
+        return [Task(**dict(row)) for row in rows]
 
     async def del_tasks_depends(self, id_: int, depends_id: int) -> bool:
         """
