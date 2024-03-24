@@ -22,9 +22,11 @@ class TaskCreate(BaseModel):
     responsible_user_id: int
     days_for_completion: int
 
+
 class ShortTask(BaseModel):
     id: int
     title: str
+
 
 class Task(BaseModel):
     id: int
@@ -45,6 +47,7 @@ class TaskDepends(BaseModel):
     task_id: int
     depends_task_id: int | None
     created_timestamp: datetime
+
 
 class TaskRepository:
     def __init__(self, db: Pool):
@@ -164,7 +167,7 @@ class TaskRepository:
 
         return bool(row)
 
-    async def get_task_depends(self, id_: int)->TaskDepends | None:
+    async def get_task_depends(self, id_: int) -> TaskDepends | None:
         """
         Показывает зависимость задачи
         """

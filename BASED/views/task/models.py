@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from BASED.repository.task import TaskStatusEnum, ShortTask
+from BASED.repository.task import ShortTask, TaskStatusEnum
 
 
 class TaskBody(BaseModel):
@@ -35,6 +35,7 @@ class ArchiveTaskBody(BaseModel):
 class EditTaskDeadlineBody(BaseModel):
     task_id: int
     new_deadline: date
+
 
 class GetAllTasksResponse(BaseModel):
     tasks: list[ShortTask]
