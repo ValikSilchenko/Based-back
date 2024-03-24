@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from enum import StrEnum, IntEnum
+from enum import IntEnum, StrEnum
 from typing import Optional
 
 from asyncpg import Pool
@@ -186,7 +186,9 @@ class TaskRepository:
 
         return TaskDepends(**dict(row))
 
-    async def get_tasks_dependent_of(self, dependent_task_id: int) -> list[TaskDepends]:
+    async def get_tasks_dependent_of(
+        self, dependent_task_id: int
+    ) -> list[TaskDepends]:
         """
         Получение всех задач, от которых зависит данная.
         """

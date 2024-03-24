@@ -4,8 +4,15 @@ from fastapi import APIRouter
 
 from BASED.repository.task import TaskStatusEnum
 from BASED.state import app_state
-from BASED.views.dashboard.helpers import get_warnings_list, get_status_order_number
-from BASED.views.dashboard.models import DashboardTask, GetDashboardTasksResponse, DashboardTasksByStatus
+from BASED.views.dashboard.helpers import (
+    get_status_order_number,
+    get_warnings_list,
+)
+from BASED.views.dashboard.models import (
+    DashboardTask,
+    DashboardTasksByStatus,
+    GetDashboardTasksResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +25,9 @@ async def get_dashboard_tasks():
 
     statuses = {}
     for task in tasks:
-        responsible = await app_state.user_repo.get_by_id(id_=task.responsible_user_id)
+        responsible = await app_state.user_repo.get_by_id(
+            id_=task.responsible_user_id
+        )
         warnings_list = get_warnings_list(task)
         dashboard_task = DashboardTask(
             id=task.id,
@@ -40,8 +49,8 @@ async def get_dashboard_tasks():
             DashboardTasksByStatus(
                 status_name=status,
                 order_number=get_status_order_number(status),
-                tasks=tasks_by_status
+                tasks=tasks_by_status,
             )
             for status, tasks_by_status in statuses.items()
-        ]
+        ],
     )
