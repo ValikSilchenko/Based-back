@@ -249,7 +249,7 @@ class TaskRepository:
 
         return bool(row)
 
-    async def get_all_tasks(self) -> list[ShortTask]:
+    async def get_all_short_tasks(self) -> list[ShortTask]:
         """
         Получает всех пользователей.
         """

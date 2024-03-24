@@ -208,5 +208,5 @@ async def edit_task_deadline(body: EditTaskDeadlineBody):
     path="/all_tasks",
 )
 async def get_all_tasks():
-    tasks = await app_state.task_repo.get_all_tasks()
+    tasks = await app_state.task_repo.get_all_short_tasks()
     return GetAllTasksResponse(tasks=tasks)

@@ -39,3 +39,18 @@ class DashboardTasksByStatus(BaseModel):
 class GetDashboardTasksResponse(BaseModel):
     progress: int
     statuses: list[DashboardTasksByStatus]
+
+
+class TimelineTask(BaseModel):
+    id: int
+    status: TaskStatusEnum
+    title: str
+    deadline: date
+    start_date: date
+    finish_date: date
+    responsible: User
+    warnings: list[WarningModel]
+
+
+class GetTimelineTasksResponse(BaseModel):
+    tasks: list[TimelineTask]
