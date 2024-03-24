@@ -22,10 +22,12 @@ class UpdateTaskStatusBody(BaseModel):
     task_id: int
     new_status: TaskStatusEnum
 
-
-class TaskDependencyBody(BaseModel):
+class TaskDependency(BaseModel):
     task_id: int
     depends_of_task_id: int
+
+class ListTaskDependency(BaseModel):
+    dependencies: list[TaskDependency]
 
 
 class ArchiveTaskBody(BaseModel):
