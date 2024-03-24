@@ -53,7 +53,10 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
 
-    if task.status == TaskStatusEnum.done and task.actual_finish_date > task.deadline:
+    if (
+        task.status == TaskStatusEnum.done
+        and task.actual_finish_date > task.deadline
+    ):
         warnings.append(
             WarningModel(type=WarningTypeEnum.late_deadline, task_id=task.id)
         )
@@ -75,14 +78,18 @@ async def get_warnings_with_cross(task: Task) -> list[WarningModel]:
 
     tasks = []
     for dependency in dependent_of_tasks:
-        tasks.append(await app_state.task_repo.get_by_id(id_=dependency.task_id))
+        tasks.append(
+            await app_state.task_repo.get_by_id(id_=dependency.task_id)
+        )
 
     comparing_task = max(tasks, key=lambda x: x.deadline)
 
     soft_start_date = task.deadline - timedelta(
         days=int(task.days_for_completion * TIME_RESERVE_COEF)
     )
-    hard_start_date = task.deadline - timedelta(days=task.days_for_completion - 1)
+    hard_start_date = task.deadline - timedelta(
+        days=task.days_for_completion - 1
+    )
     current_date = date.today()
 
     cross_warning = None
