@@ -241,3 +241,18 @@ class TaskRepository:
             data = await c.fetch(sql)
 
         return [ShortTask(**dict(i)) for i in data]
+
+    async def del_tasks_depends(self, id_: int, depends_id: int) -> bool:
+        """
+        Получает всех пользователей.
+        """
+        sql = """
+            DELETE FROM "task_depends"
+            WHERE "task_id" = $1 AND "depends_task_id" = $2
+            RETURNING TRUE
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, id_, depends_id)
+        if not row:
+            return False
+        return True
