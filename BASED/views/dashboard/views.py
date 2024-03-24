@@ -7,12 +7,15 @@ from BASED.repository.task import TaskStatusEnum
 from BASED.state import app_state
 from BASED.views.dashboard.helpers import (
     get_status_order_number,
-    get_warnings_list, get_start_finish_date,
+    get_warnings_list,
+    get_start_finish_date,
 )
 from BASED.views.dashboard.models import (
     DashboardTask,
     DashboardTasksByStatus,
-    GetDashboardTasksResponse, GetTimelineTasksResponse, TimelineTask,
+    GetDashboardTasksResponse,
+    GetTimelineTasksResponse,
+    TimelineTask,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,4 +85,3 @@ async def get_timeline_tasks():
         )
 
     return GetTimelineTasksResponse(tasks=timeline_tasks)
-
