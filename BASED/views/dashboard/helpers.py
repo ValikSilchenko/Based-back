@@ -15,7 +15,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
     match task.status:
         case TaskStatusEnum.to_do:
             if current_date >= task.deadline - timedelta(
-                days=task.days_for_completion
+                days=task.days_for_completion - 1
             ):
                 warnings.append(
                     WarningModel(
@@ -23,7 +23,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
             elif current_date >= task.deadline - timedelta(
-                days=task.days_for_completion * TIME_RESERVE_COEF
+                days=int(task.days_for_completion * TIME_RESERVE_COEF)
             ):
                 warnings.append(
                     WarningModel(
@@ -37,7 +37,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                 days_to_deadline = 0
 
             if current_date >= task.deadline - timedelta(
-                days=days_to_deadline
+                days=days_to_deadline - 1
             ):
                 warnings.append(
                     WarningModel(
@@ -45,7 +45,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
             elif current_date >= task.deadline - timedelta(
-                days=days_to_deadline * TIME_RESERVE_COEF
+                days=int(days_to_deadline * TIME_RESERVE_COEF)
             ):
                 warnings.append(
                     WarningModel(
@@ -80,9 +80,9 @@ async def get_warnings_with_cross(task: Task) -> list[WarningModel]:
     comparing_task = max(tasks, key=lambda x: x.deadline)
 
     soft_start_date = task.deadline - timedelta(
-        days=task.days_for_completion * TIME_RESERVE_COEF
+        days=int(task.days_for_completion * TIME_RESERVE_COEF)
     )
-    hard_start_date = task.deadline - timedelta(days=task.days_for_completion)
+    hard_start_date = task.deadline - timedelta(days=task.days_for_completion - 1)
     current_date = date.today()
 
     cross_warning = None
