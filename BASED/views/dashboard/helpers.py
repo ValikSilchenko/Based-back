@@ -19,7 +19,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
             elif current_date >= task.deadline - timedelta(
-                days=task.days_for_completion * TIME_RESERVE_COEF
+                days=int(task.days_for_completion * TIME_RESERVE_COEF) + 1
             ):
                 warnings.append(
                     WarningModel(
@@ -41,7 +41,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
                     )
                 )
             elif current_date >= task.deadline - timedelta(
-                days=days_to_deadline * TIME_RESERVE_COEF
+                days=int(days_to_deadline * TIME_RESERVE_COEF) + 1
             ):
                 warnings.append(
                     WarningModel(
@@ -81,9 +81,9 @@ def get_start_finish_date(task: Task) -> tuple[date, date]:
             if current_date > task.deadline:
                 finish_date = current_date
             else:
-                finish_date = task.deadline
+                finish_date = start_date + timedelta(days=task.days_for_completion)
         case TaskStatusEnum.to_do:
-            days_with_reserve = task.days_for_completion * TIME_RESERVE_COEF
+            days_with_reserve = int(task.days_for_completion * TIME_RESERVE_COEF) + 1
             start_date_with_reserve = task.deadline - timedelta(
                 days=days_with_reserve
             )
