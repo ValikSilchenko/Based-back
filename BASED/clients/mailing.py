@@ -21,7 +21,7 @@ class MailClient:
         message["From"] = self._username
         message["To"] = to
         await aiosmtplib.send(
-            message=message,
+            message,
             sender=self._username,
             recipients=to,
             hostname=self._host,

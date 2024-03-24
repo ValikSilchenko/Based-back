@@ -3,6 +3,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from starlette import status
 
+from BASED.conf import USER_EMAIL
 from BASED.state import app_state
 from BASED.views.user.models import (
     CreateUserBody,
@@ -47,3 +48,10 @@ async def del_users(body: DeleteUserBody):
         )
     else:
         return
+
+
+@router.get(path="/send_report")
+async def send_report_to_user():
+    await app_state.mail_client.send_message(
+        to=USER_EMAIL, subject="Test", text="Hello! It's a test message."
+    )
