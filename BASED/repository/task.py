@@ -45,7 +45,7 @@ class Task(BaseModel):
 
 class TaskDepends(BaseModel):
     task_id: int
-    depends_task_id: int | None
+    depends_task_id: int
     created_timestamp: datetime
 
 
