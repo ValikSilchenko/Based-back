@@ -37,7 +37,7 @@ def get_warnings_list(task: Task) -> list[WarningModel]:
             ):
                 warnings.append(
                     WarningModel(
-                        type=WarningTypeEnum.start_soft, task_id=task.id
+                        type=WarningTypeEnum.finish_hard, task_id=task.id
                     )
                 )
             elif current_date >= task.deadline - timedelta(
