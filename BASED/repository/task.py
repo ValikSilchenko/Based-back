@@ -17,6 +17,7 @@ class TaskStatusEnum(StrEnum):
 class DependencyTypeEnum(StrEnum):
     depends_of = "depends_of"
     dependent_for = "dependent_for"
+    self = "self"
 
 
 class TaskStatusOrder(IntEnum):
@@ -317,6 +318,11 @@ class TaskRepository:
             from "task_depends" join "task"
             on "task_depends"."depends_task_id" = "task"."id"
             where "task_id" = $1
+            union
+            select "id", 'self' as "dependency_type",
+             "title", "deadline", "responsible_user_id"
+            from "task"
+            where "id" = $1
             order by "deadline"
         """
         async with self._db.acquire() as c:
