@@ -22,6 +22,9 @@ class TaskCreate(BaseModel):
     responsible_user_id: int
     days_for_completion: int
 
+class ShortTask(BaseModel):
+    id: int
+    title: str
 
 class Task(BaseModel):
     id: int
@@ -37,6 +40,11 @@ class Task(BaseModel):
     is_archived: bool
     created_timestamp: datetime
 
+
+class TaskDepends(BaseModel):
+    task_id: int
+    depends_task_id: int | None
+    created_timestamp: datetime
 
 class TaskRepository:
     def __init__(self, db: Pool):
@@ -156,6 +164,34 @@ class TaskRepository:
 
         return bool(row)
 
+    async def get_task_depends(self, id_: int)->TaskDepends | None:
+        """
+        Показывает зависимость задачи
+        """
+        sql = """
+        SELECT * from "task_depends"
+        WHERE "task_depends"."task_id" = $1
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, id_)
+        if not row:
+            return
+
+        return TaskDepends(**dict(row))
+
+    async def add_task_depends(self, id_: int, depends_id: int):
+        """
+        Добавляет зависимость задач
+        """
+        sql = """
+        INSERT INTO "task_depends" (task_id, depends_task_id)
+        VALUES ($1, $2)
+        ON CONFLICT (task_id, depends_task_id) DO NOTHING
+        """
+        async with self._db.acquire() as c:
+            await c.fetchrow(sql, id_, depends_id)
+        return
+
     async def update_task_archive_status(
         self, task_id: int, archive_status: bool
     ) -> bool:
@@ -189,3 +225,16 @@ class TaskRepository:
             row = await c.fetchrow(sql, task_id, new_deadline)
 
         return bool(row)
+
+    async def get_all_tasks(self) -> list[ShortTask]:
+        """
+        Получает всех пользователей.
+        """
+        sql = """
+            SELECT *
+            FROM "task"
+        """
+        async with self._db.acquire() as c:
+            data = await c.fetch(sql)
+
+        return [ShortTask(**dict(i)) for i in data]
