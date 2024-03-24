@@ -13,7 +13,8 @@ from BASED.views.task.models import (
     EditTaskDeadlineBody,
     GetAllTasksResponse,
     TaskBody,
-    TaskDependencyBody,
+    ListTaskDependency,
+    TaskDependency,
     UpdateTaskStatusBody,
 )
 
@@ -113,60 +114,64 @@ async def update_task_status(body: UpdateTaskStatusBody):
 
 
 @router.post(path="/add_task_dependency")
-async def add_task_dependency(body: TaskDependencyBody):
-    task_exist = await app_state.task_repo.get_by_id(id_=body.task_id)
-    if not task_exist:
-        logger.error("Task not found. task_id=%s", body.task_id)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
+async def add_task_dependency(body: ListTaskDependency):
+    if len(body.dependencies) < 0:
+        return
+    depend_errors = list()
+    for depend in body.dependencies:
+        task_exist = await app_state.task_repo.get_by_id(id_=depend.task_id)
+        if not task_exist:
+            logger.error("Task not found. task_id=%s", depend.task_id)
+            depend_errors.append(depend)
+            continue
+        depends_task_exist = await app_state.task_repo.get_by_id(
+            id_=depend.depends_of_task_id
         )
-    depends_task_exist = await app_state.task_repo.get_by_id(
-        id_=body.depends_of_task_id
-    )
-    if not depends_task_exist:
-        logger.error("Task not found. task_id=%s", body.task_id)
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
-        )
-    if task_exist == depends_task_exist:
-        logger.error(
-            "Сannot refer to itself. task_id=%s task_depend_id=%s",
-            body.task_id,
-            body.depends_of_task_id,
-        )
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Сannot refer to itself.",
-        )
-    depends_task_list = [body.depends_of_task_id]
-    dependend_task = await app_state.task_repo.get_task_depends(
-        id_=body.depends_of_task_id
-    )
-    if dependend_task:
-        while dependend_task:
-            depends_task_list.append(dependend_task.depends_task_id)
-            dependend_task = await app_state.task_repo.get_task_depends(
-                id_=dependend_task.depends_task_id
-            )
-        if body.task_id in depends_task_list:
+        if not depends_task_exist:
+            logger.error("Task not found. task_id=%s", depend.task_id)
+            depend_errors.append(depend)
+            continue
+        if task_exist == depends_task_exist:
             logger.error(
-                "Depend creating cycle. task_id=%s in depends_task_list=%s",
-                body.task_id,
-                depends_task_list,
+                "Сannot refer to itself. task_id=%s task_depend_id=%s",
+                depend.task_id,
+                depend.depends_of_task_id,
             )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Depend creating cycle.",
+            depend_errors.append(depend)
+            continue
+        depends_task_list = [depend.depends_of_task_id]
+        logger.info(f"now: {depend.depends_of_task_id}")
+        dependend_task = await app_state.task_repo.get_task_depends(
+            id_=depend.depends_of_task_id
+        )
+        ok = True
+        if dependend_task:
+            while dependend_task:
+                logger.info(f"in cycle: {dependend_task}")
+                for x in dependend_task:
+                    depends_task_list.append(x.depends_task_id)
+                    dependend_task = await app_state.task_repo.get_task_depends(
+                        id_=x.depends_task_id)
+            logger.info(f"after cycle res: {depends_task_list}")
+            if depend.task_id in depends_task_list:
+                logger.error(
+                    "Depend creating cycle. task_id=%s in depends_task_list=%s",
+                    depend.task_id,
+                    depends_task_list,
+                )
+                ok = False
+        if ok == False:
+            depend_errors.append(depend)
+            continue
+        else:
+            await app_state.task_repo.add_task_depends(
+                id_=depend.task_id, depends_id=depend.depends_of_task_id
             )
-
-    await app_state.task_repo.add_task_depends(
-        id_=body.task_id, depends_id=body.depends_of_task_id
-    )
-    return None
+    return depend_errors
 
 
 @router.delete(path="/del_task_dependency")
-async def delete_task_dependency(body: TaskDependencyBody):
+async def delete_task_dependency(body: TaskDependency):
     is_deleted = await app_state.task_repo.del_tasks_depends(
         body.task_id, body.depends_of_task_id
     )
