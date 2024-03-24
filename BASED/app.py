@@ -6,6 +6,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 import BASED.conf as conf
@@ -29,10 +30,12 @@ sentry_sdk.init(
 )
 
 app = FastAPI()
+
 app.middleware("http")(middlewares.access_log_middleware)
 app.middleware("http")(middlewares.request_time_middleware)
 app.middleware("http")(middlewares.request_status_middleware)
 app.middleware("http")(middlewares.request_id_middleware)
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 app.include_router(user_router)
 app.include_router(task_router)

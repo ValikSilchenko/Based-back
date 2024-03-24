@@ -11,7 +11,9 @@ from BASED.views.task.models import (
     ArchiveTaskBody,
     EditTaskBody,
     EditTaskDeadlineBody,
+    GetAllTasksResponse,
     TaskBody,
+    TaskDependencyBody,
     UpdateTaskStatusBody,
 )
 
@@ -110,6 +112,59 @@ async def update_task_status(body: UpdateTaskStatusBody):
             )
 
 
+@router.post(path="/add_task_dependency")
+async def add_task_dependency(body: TaskDependencyBody):
+    task_exist = await app_state.task_repo.get_by_id(id_=body.task_id)
+    if not task_exist:
+        logger.error("Task not found. task_id=%s", body.task_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
+        )
+    depends_task_exist = await app_state.task_repo.get_by_id(
+        id_=body.depends_of_task_id
+    )
+    if not depends_task_exist:
+        logger.error("Task not found. task_id=%s", body.task_id)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
+        )
+    if task_exist == depends_task_exist:
+        logger.error(
+            "Сannot refer to itself. task_id=%s task_depend_id=%s",
+            body.task_id,
+            body.depends_of_task_id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Сannot refer to itself.",
+        )
+    depends_task_list = [body.depends_of_task_id]
+    dependend_task = await app_state.task_repo.get_task_depends(
+        id_=body.depends_of_task_id
+    )
+    if dependend_task:
+        while dependend_task:
+            depends_task_list.append(dependend_task.depends_task_id)
+            dependend_task = await app_state.task_repo.get_task_depends(
+                id_=dependend_task.depends_task_id
+            )
+        if body.task_id in depends_task_list:
+            logger.error(
+                "Depend creating cycle. task_id=%s in depends_task_list=%s",
+                body.task_id,
+                depends_task_list,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Depend creating cycle.",
+            )
+
+    await app_state.task_repo.add_task_depends(
+        id_=body.task_id, depends_id=body.depends_of_task_id
+    )
+    return None
+
+
 @router.put(path="/archive_task")
 async def archive_task(body: ArchiveTaskBody):
     result = await app_state.task_repo.update_task_archive_status(
@@ -132,3 +187,11 @@ async def edit_task_deadline(body: EditTaskDeadlineBody):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Task not found."
         )
+
+
+@router.get(
+    path="/all_tasks",
+)
+async def get_all_tasks():
+    tasks = await app_state.task_repo.get_all_tasks()
+    return GetAllTasksResponse(tasks=tasks)
