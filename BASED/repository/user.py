@@ -1,3 +1,5 @@
+from typing import Optional
+
 from asyncpg import Pool
 from pydantic import BaseModel
 
@@ -35,3 +37,16 @@ class UserRepository:
             data = await c.fetch(sql)
 
         return [User(**dict(i)) for i in data]
+
+    async def get_by_id(self, id_: int) -> Optional[User]:
+        sql = """
+            select * from "user"
+            where "id" = $1
+        """
+        async with self._db.acquire() as c:
+            row = await c.fetchrow(sql, id_)
+
+        if not row:
+            return
+
+        return User(**dict(row))
