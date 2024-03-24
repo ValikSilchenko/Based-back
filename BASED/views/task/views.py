@@ -12,8 +12,8 @@ from BASED.views.task.models import (
     EditTaskBody,
     EditTaskDeadlineBody,
     GetAllTasksResponse,
-    TaskBody,
     ListTaskDependency,
+    TaskBody,
     TaskDependency,
     UpdateTaskStatusBody,
 )
@@ -150,17 +150,21 @@ async def add_task_dependency(body: ListTaskDependency):
                 logger.info(f"in cycle: {dependend_task}")
                 for x in dependend_task:
                     depends_task_list.append(x.depends_task_id)
-                    dependend_task = await app_state.task_repo.get_task_depends(
-                        id_=x.depends_task_id)
+                    dependend_task = (
+                        await app_state.task_repo.get_task_depends(
+                            id_=x.depends_task_id
+                        )
+                    )
             logger.info(f"after cycle res: {depends_task_list}")
             if depend.task_id in depends_task_list:
                 logger.error(
-                    "Depend creating cycle. task_id=%s in depends_task_list=%s",
+                    "Depend creating cycle."
+                    " task_id=%s in depends_task_list=%s",
                     depend.task_id,
                     depends_task_list,
                 )
                 ok = False
-        if ok == False:
+        if not ok:
             depend_errors.append(depend)
             continue
         else:

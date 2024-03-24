@@ -7,15 +7,16 @@ from BASED.state import app_state
 from BASED.views.dashboard.helpers import (
     get_start_finish_date,
     get_status_order_number,
-    get_warnings_list,
     get_warnings_with_cross,
 )
 from BASED.views.dashboard.models import (
     DashboardTask,
     DashboardTasksByStatus,
     GetDashboardTasksResponse,
+    GetTimelineDependenciesResponse,
     GetTimelineTasksResponse,
     TimelineTask,
+    TimelineTaskDependency,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ async def get_dashboard_tasks():
         responsible = await app_state.user_repo.get_by_id(
             id_=task.responsible_user_id
         )
-        warnings_list = get_warnings_list(task)
+        warnings_list = await get_warnings_with_cross(task)
         dashboard_task = DashboardTask(
             id=task.id,
             title=task.title,
@@ -85,3 +86,40 @@ async def get_timeline_tasks():
         )
 
     return GetTimelineTasksResponse(tasks=timeline_tasks)
+
+
+@router.get(
+    path="/timeline_dependencies",
+    response_model=GetTimelineDependenciesResponse,
+)
+async def get_timeline_dependencies(task_id: int):
+    task = await app_state.task_repo.get_by_id(id_=task_id)
+    dependencies = await app_state.task_repo.get_all_task_dependencies(
+        task_id=task.id
+    )
+
+    tasks = []
+    for dependency in dependencies:
+        responsible = await app_state.user_repo.get_by_id(
+            id_=dependency.responsible_user_id
+        )
+
+        task = await app_state.task_repo.get_by_id(id_=dependency.id)
+        warnings_list = await get_warnings_with_cross(task)
+        start_date, finish_date = get_start_finish_date(task)
+
+        tasks.append(
+            TimelineTaskDependency(
+                id=task.id,
+                warnings=warnings_list,
+                start_date=start_date,
+                finish_date=finish_date,
+                responsible=responsible,
+                dependency_type=dependency.dependency_type,
+                status=task.status,
+                title=task.title,
+                deadline=task.deadline,
+            )
+        )
+
+    return GetTimelineDependenciesResponse(tasks=tasks)

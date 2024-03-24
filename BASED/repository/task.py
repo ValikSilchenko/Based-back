@@ -14,6 +14,12 @@ class TaskStatusEnum(StrEnum):
     done = "done"
 
 
+class DependencyTypeEnum(StrEnum):
+    depends_of = "depends_of"
+    dependent_for = "dependent_for"
+    self = "self"
+
+
 class TaskStatusOrder(IntEnum):
     to_do = 1
     in_progress = 2
@@ -53,6 +59,14 @@ class TaskDepends(BaseModel):
     task_id: int
     depends_task_id: int
     created_timestamp: datetime
+
+
+class TaskWithDependency(BaseModel):
+    id: int
+    dependency_type: DependencyTypeEnum
+    responsible_user_id: int
+    title: str | None
+    deadline: date
 
 
 class TaskRepository:
@@ -179,12 +193,10 @@ class TaskRepository:
         """
         sql = """
         SELECT * from "task_depends"
-        WHERE "task_depends"."task_id" = $1
+        WHERE "task_id" = $1
         """
         async with self._db.acquire() as c:
             data = await c.fetch(sql, id_)
-        if not data:
-            return
 
         return [TaskDepends(**dict(row)) for row in data]
 
@@ -290,3 +302,30 @@ class TaskRepository:
         if not row:
             return False
         return True
+
+    async def get_all_task_dependencies(
+        self, task_id: int
+    ) -> list[TaskWithDependency]:
+        sql = """
+            select "id", 'depends_of' as "dependency_type",
+             "title", "deadline", "responsible_user_id"
+            from "task_depends" join "task"
+            on "task_depends"."task_id" = "task"."id"
+            where "depends_task_id" = $1
+            union
+            select "id", 'dependent_for' as "dependency_type",
+             "title", "deadline", "responsible_user_id"
+            from "task_depends" join "task"
+            on "task_depends"."depends_task_id" = "task"."id"
+            where "task_id" = $1
+            union
+            select "id", 'self' as "dependency_type",
+             "title", "deadline", "responsible_user_id"
+            from "task"
+            where "id" = $1
+            order by "deadline"
+        """
+        async with self._db.acquire() as c:
+            rows = await c.fetch(sql, task_id)
+
+        return [TaskWithDependency(**dict(row)) for row in rows]
