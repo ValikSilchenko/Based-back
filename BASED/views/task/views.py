@@ -5,18 +5,18 @@ from asyncpg import ForeignKeyViolationError
 from fastapi import APIRouter, HTTPException
 from starlette import status
 
-from BASED.repository.task import (
-    DependencyTypeEnum,
-    TaskCreate,
-    TaskStatusEnum,
-)
+from BASED.repository.task import TaskCreate, TaskStatusEnum
 from BASED.state import app_state
-from BASED.views.task.helpers import check_dependency_and_add
+from BASED.views.task.helpers import (
+    check_dependency_and_add,
+    parse_dependencies_types_to_task_depends,
+)
 from BASED.views.task.models import (
     ArchiveTaskBody,
     CreateTaskResponse,
     EditTaskBody,
     EditTaskDeadlineBody,
+    EditTaskResponse,
     GetAllTasksResponse,
     ListTaskDependency,
     TaskBody,
@@ -39,21 +39,9 @@ async def create_task(body: TaskBody):
         )
         logger.info("Task created successfully. task_id=%s", task.id)
 
-        dependencies = [
-            TaskDependency(
-                task_id=(
-                    dependency.task_id
-                    if dependency.type == DependencyTypeEnum.depends_of
-                    else task.id
-                ),
-                depends_of_task_id=(
-                    task.id
-                    if dependency.type == DependencyTypeEnum.depends_of
-                    else dependency.task_id
-                ),
-            )
-            for dependency in body.dependencies
-        ]
+        dependencies = parse_dependencies_types_to_task_depends(
+            dependencies=body.dependencies, main_task_id=task.id
+        )
         depend_errors = await check_dependency_and_add(dependencies)
     except ForeignKeyViolationError:
         logger.error(
@@ -70,11 +58,16 @@ async def create_task(body: TaskBody):
     )
 
 
-@router.put(path="/edit_task")
+@router.put(path="/edit_task", response_model=EditTaskResponse)
 async def edit_task(body: EditTaskBody):
     try:
         task = await app_state.task_repo.update_task_data(
-            task_id=body.task_id, **dict(body.task_data)
+            task_id=body.task_id,
+            title=body.task_data.title,
+            description=body.task_data.description,
+            deadline=body.task_data.deadline,
+            responsible_user_id=body.task_data.responsible_user_id,
+            days_for_completion=body.task_data.days_for_completion,
         )
     except ForeignKeyViolationError:
         logger.error(
@@ -91,6 +84,13 @@ async def edit_task(body: EditTaskBody):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Task not found.",
         )
+
+    dependencies = parse_dependencies_types_to_task_depends(
+        dependencies=body.task_data.dependencies, main_task_id=task.id
+    )
+    depend_errors = await check_dependency_and_add(dependencies)
+
+    return EditTaskResponse(dependency_errors=depend_errors)
 
 
 @router.put(path="/update_task_status")

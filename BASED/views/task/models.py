@@ -34,6 +34,10 @@ class EditTaskBody(BaseModel):
     task_data: TaskBody
 
 
+class EditTaskResponse(BaseModel):
+    dependency_errors: list[TaskDependency]
+
+
 class UpdateTaskStatusBody(BaseModel):
     task_id: int
     new_status: TaskStatusEnum
