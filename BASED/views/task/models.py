@@ -2,12 +2,17 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from BASED.repository.task import ShortTask, TaskStatusEnum
+from BASED.repository.task import ShortTask, TaskStatusEnum, DependencyTypeEnum
 
 
 class TaskDependency(BaseModel):
     task_id: int
     depends_of_task_id: int
+
+
+class CreationTaskDependencies(BaseModel):
+    type: DependencyTypeEnum
+    task_id: int
 
 
 class TaskBody(BaseModel):
@@ -16,7 +21,7 @@ class TaskBody(BaseModel):
     deadline: date
     responsible_user_id: int
     days_for_completion: int
-    dependencies: list[TaskDependency]
+    dependencies: list[CreationTaskDependencies]
 
 
 class EditTaskBody(BaseModel):
