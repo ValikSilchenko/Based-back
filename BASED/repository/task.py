@@ -173,7 +173,7 @@ class TaskRepository:
 
         return bool(row)
 
-    async def get_task_depends(self, id_: int) -> Optional[TaskDepends]:
+    async def get_task_depends(self, id_: int) -> list[TaskDepends] | None:
         """
         Показывает зависимости задачи
         """
@@ -182,11 +182,11 @@ class TaskRepository:
         WHERE "task_depends"."task_id" = $1
         """
         async with self._db.acquire() as c:
-            row = await c.fetchrow(sql, id_)
-        if not row:
+            data = await c.fetch(sql, id_)
+        if not data:
             return
 
-        return TaskDepends(**dict(row))
+        return [TaskDepends(**dict(row)) for row in data]
 
     async def get_tasks_dependent_of(
         self, dependent_task_id: int
