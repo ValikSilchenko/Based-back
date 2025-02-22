@@ -46,9 +46,11 @@ async def get_dashboard_tasks():
         else:
             statuses[task.status] = [dashboard_task]
 
-    progress = int(
-        len(statuses.get(TaskStatusEnum.done, [])) / len(tasks) * 100
-    )
+    progress = 0
+    if len(tasks) != 0:
+        progress = int(
+            len(statuses.get(TaskStatusEnum.done, [])) / len(tasks) * 100
+        )
 
     return GetDashboardTasksResponse(
         progress=progress,
